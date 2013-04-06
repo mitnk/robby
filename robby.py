@@ -6,6 +6,7 @@ import time
 SIZE = 10
 NUMBER_ROBBY = 200
 NUMBER_WALK = 100
+VARIATION_LIST = [1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5]
 
 # 0 for empty
 # 1 for can
@@ -147,14 +148,14 @@ def get_new_robby(robbys, variation):
     robby2 = parent_b[:mid] + parent_a[mid:]
     vari = random.randint(1, 1000)
     if vari <= variation * 10:
-        number = random.choice([1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5])
+        number = random.choice(VARIATION_LIST)
         for i in xrange(number):
             idx = random.randint(1, 241)
             rand_action = random.randint(0, 6)
             robby1 = robby1[:idx] + str(rand_action) + robby1[idx + 1:]
     vari = random.randint(1, 1000)
     if vari >= 1000 - variation * 10:
-        number = random.choice([1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5])
+        number = random.choice(VARIATION_LIST)
         for i in xrange(number):
             idx = random.randint(1, 241)
             rand_action = random.randint(0, 6)
