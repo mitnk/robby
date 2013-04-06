@@ -7,7 +7,11 @@ SIZE = 10
 # 1 for can
 # 2 for wall
 def get_situations():
-    return [''.join(x) for x in itertools.product('012', repeat=5)]
+    situations = [''.join(x) for x in itertools.product('012', repeat=5)]
+    result = {}
+    for i in range(len(situations)):
+        result[situations[i]] = i
+    return result
 
 SITUATIONS = get_situations()
 
@@ -55,7 +59,7 @@ def walk(square, robby, x=0, y=0, steps=200):
     situation += get_state(square, x, y + 1) # down
     situation += get_state(square, x - 1, y) # left
     situation += get_state(square, x, y) # self
-    index = SITUATIONS.index(situation)
+    index = SITUATIONS[situation]
     action = robby[index]
     score = 0
 
@@ -151,7 +155,7 @@ def get_new_robby(robbys, avg_score):
 
 
 
-def main():
+def go_evolution(generations=1000):
     import time
 
     #print_squares(squares)
@@ -160,7 +164,7 @@ def main():
         robby = {'name': get_random_robby(), 'score': -1000000000}
         robbys.append(robby)
 
-    for j in range(1000):
+    for j in range(generations):
         an_scores = 0
         count = 0
         BEST = -1000000
@@ -189,9 +193,6 @@ def main():
             new_robbys.append(robby1)
             new_robbys.append(robby2)
         robbys = new_robbys
-        break
 
 if __name__ == '__main__':
-    #main()
-    for i in range(10000):
-        get_random_squares()
+    go_evolution(3)
