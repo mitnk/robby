@@ -24,6 +24,7 @@ def get_index_random_base():
 
 INDEXES_RANDOM_BASE = get_index_random_base()
 
+# now 2.09 seconds for 10000 times
 def get_random_squares():
     squares = []
     for i in range(SIZE):
@@ -149,7 +150,8 @@ def get_new_robby(robbys, avg_score):
     return robby1, robby2
 
 
-if __name__ == '__main__':
+
+def main():
     import time
 
     #print_squares(squares)
@@ -188,3 +190,8 @@ if __name__ == '__main__':
             new_robbys.append(robby2)
         robbys = new_robbys
         break
+
+if __name__ == '__main__':
+    #main()
+    for i in range(10000):
+        get_random_squares()
