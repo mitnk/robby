@@ -1,7 +1,11 @@
 import itertools
+import logging
 import random
+import time
 
 SIZE = 10
+NUMBER_ROBBY = 200
+NUMBER_WALK = 100
 
 # 0 for empty
 # 1 for can
@@ -9,7 +13,7 @@ SIZE = 10
 def get_situations():
     situations = [''.join(x) for x in itertools.product('012', repeat=5)]
     result = {}
-    for i in range(len(situations)):
+    for i in xrange(len(situations)):
         result[situations[i]] = i
     return result
 
@@ -20,9 +24,9 @@ def get_index_random_base():
     IRB = []
     TOP_NUMBER = 20
     total_number = 100
-    for i in range(TOP_NUMBER):
+    for i in xrange(TOP_NUMBER):
         IRB.extend([i] * (TOP_NUMBER - i))
-    for i in range(TOP_NUMBER, total_number):
+    for i in xrange(TOP_NUMBER, total_number):
         IRB.append(i)
     return IRB
 
@@ -31,9 +35,9 @@ INDEXES_RANDOM_BASE = get_index_random_base()
 # now 2.09 seconds for 10000 times
 def get_random_squares():
     squares = []
-    for i in range(SIZE):
+    for i in xrange(SIZE):
         s = []
-        for j in range(SIZE):
+        for j in xrange(SIZE):
             a = random.randint(1, 100)
             if a >= 51:
                 s.append(1)
@@ -61,23 +65,24 @@ def walk(square, robby, x=0, y=0, steps=200):
     situation += get_state(square, x, y) # self
     index = SITUATIONS[situation]
     action = robby[index]
-    score = 0
 
-    if action == '5': # pick can
+    # pick up can
+    if action == '5':
         if square[x][y] == 1:
             score = 10
             square[x][y] = 0
         else:
             score = -1
-    elif action == '0': # stay still
-        score = 0
-        steps = 0
+        return score + walk(square, robby, x, y, steps - 1)
 
-    elif action == '6': # go a random direction
+    # stay still
+    if action == '0':
+        return 0
+
+    # go a random direction
+    if action == '6':
         action = random.sample('1234', 1)[0]
 
-    _x = x
-    _y = y
     if action == '1': # go up
         _x = x
         _y = y - 1
@@ -88,9 +93,12 @@ def walk(square, robby, x=0, y=0, steps=200):
         _x = x
         _y = y + 1
     elif action == '4': # go left
-        _x = _x - 1
+        _x = x - 1
         _y = y
+    else:
+        raise "How could you come here! action: %s" % action
 
+    score = 0
     if hit_wall(_x, _y):
         score = -5
         _x = x
@@ -107,7 +115,7 @@ def walk(square, robby, x=0, y=0, steps=200):
 # 6 for go random one of (up / right / down / left)
 def get_random_robby():
     m = ""
-    for i in range(243):
+    for i in xrange(243):
         m += str(random.randint(0, 6))
     return m
 
@@ -120,79 +128,81 @@ def get_state(square, x, y):
 
 
 def print_squares(squares):
-    for y in range(SIZE):
-        for x in range(SIZE):
+    for y in xrange(SIZE):
+        for x in xrange(SIZE):
             print squares[x][y],
         print ''
 
-def get_new_robby(robbys, avg_score):
-    idx_a = random.sample(INDEXES_RANDOM_BASE, 1)[0]
+def get_new_robby(robbys, variation=4):
+    idx_a = random.choice(INDEXES_RANDOM_BASE)
     parent_a = robbys[idx_a]['name']
 
-    idx_b = random.sample(INDEXES_RANDOM_BASE, 1)[0]
+    idx_b = random.choice(INDEXES_RANDOM_BASE)
     while idx_b == idx_a:
-        idx_b = random.sample(INDEXES_RANDOM_BASE, 1)[0]
+        idx_b = random.choice(INDEXES_RANDOM_BASE)
     parent_b = robbys[idx_b]['name']
 
-    index = random.randint(1, 241)
-    robby1 = parent_a[:index] + parent_b[index:]
-    robby2 = parent_b[:index] + parent_a[index:]
-    vari = random.randint(1, 100)
-    if vari < 5:
+    mid = random.randint(80, 160)
+    robby1 = parent_a[:mid] + parent_b[mid:]
+    robby2 = parent_b[:mid] + parent_a[mid:]
+    vari = random.randint(1, 1000)
+    if vari <= variation * 10:
         number = random.randint(1, 4)
-        for i in range(number):
+        for i in xrange(number):
             idx = random.randint(1, 241)
             rand_action = random.randint(0, 6)
             robby1 = robby1[:idx] + str(rand_action) + robby1[idx + 1:]
-    vari = random.randint(1, 100)
-    if vari > 94:
+    vari = random.randint(1, 1000)
+    if vari >= 1000 - variation * 10:
         number = random.randint(1, 4)
-        for i in range(number):
+        for i in xrange(number):
             idx = random.randint(1, 241)
             rand_action = random.randint(0, 6)
             robby2 = robby2[:idx] + str(rand_action) + robby2[idx + 1:]
     return robby1, robby2
 
-
-
 def go_evolution(generations=1000):
-    import time
-
-    #print_squares(squares)
     robbys = []
-    for i in range(200):
-        robby = {'name': get_random_robby(), 'score': -1000000000}
+    for i in xrange(NUMBER_ROBBY):
+        robby = {'name': get_random_robby(), 'score': 0 }
         robbys.append(robby)
 
-    for j in range(generations):
-        an_scores = 0
-        count = 0
-        BEST = -1000000
+    for j in xrange(generations):
+        sum_scores = 0
+        gene_best = -1000000
         for robby in robbys:
             scores = 0
-            for i in range(100):
+            for i in xrange(NUMBER_WALK):
                 squares = get_random_squares()
                 scores += walk(squares, robby['name'])
                 time.sleep(0.001)
-            count += 1
-            avg_score = scores / 100.0
+            avg_score = scores / (NUMBER_WALK * 1.0)
             robby['score'] = avg_score
-            an_scores += avg_score
-            if BEST < avg_score:
-                BEST = avg_score
+            sum_scores += avg_score
+            if gene_best < avg_score:
+                gene_best = avg_score
 
         robbys.sort(key=lambda x: x['score'], reverse=True)
         robbys = robbys[:100]
-        AVG = an_scores / 200.0
-        print "[%d, %.2f] AVG: %.2f" % (j, BEST, AVG)
+        AVG = sum_scores / (NUMBER_ROBBY * 1.0)
+        logging.info("[%d, %.2f] AVG: %.2f" % (j, gene_best, AVG))
         new_robbys = []
-        for i in range(100):
-            robby1, robby2 = get_new_robby(robbys, AVG)
+        for i in xrange(100):
+            robby1, robby2 = get_new_robby(robbys)
             robby1 = {'name': robby1, 'score': 0}
             robby2 = {'name': robby2, 'score': 0}
             new_robbys.append(robby1)
             new_robbys.append(robby2)
         robbys = new_robbys
+        logging.info('=== %s' % robbys)
 
 if __name__ == '__main__':
+    from optparse import OptionParser
+
+    parser = OptionParser()
+    parser.add_option("-f", "--logfile", dest="logfile",
+        help="Save output into a file")
+    (options, args) = parser.parse_args()
+    logging.basicConfig(filename=options.logfile, level=logging.INFO,
+        format="[%(asctime)s][%(levelname)s] %(message)s")
     go_evolution(3)
