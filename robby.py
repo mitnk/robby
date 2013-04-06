@@ -194,7 +194,8 @@ def go_evolution(generations=1000):
             new_robbys.append(robby1)
             new_robbys.append(robby2)
         robbys = new_robbys
-        logging.info('=== %s' % robbys)
+        if j % 100 == 0:
+            logging.info('=== [G: %d] %s' % (j, robbys))
 
 if __name__ == '__main__':
     from optparse import OptionParser
@@ -205,4 +206,4 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
     logging.basicConfig(filename=options.logfile, level=logging.INFO,
         format="[%(asctime)s][%(levelname)s] %(message)s")
-    go_evolution(3)
+    go_evolution()
