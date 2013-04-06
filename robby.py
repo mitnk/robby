@@ -133,7 +133,7 @@ def print_squares(squares):
             print squares[x][y],
         print ''
 
-def get_new_robby(robbys, variation=4):
+def get_new_robby(robbys, variation):
     idx_a = random.choice(INDEXES_RANDOM_BASE)
     parent_a = robbys[idx_a]['name']
 
@@ -147,21 +147,21 @@ def get_new_robby(robbys, variation=4):
     robby2 = parent_b[:mid] + parent_a[mid:]
     vari = random.randint(1, 1000)
     if vari <= variation * 10:
-        number = random.randint(1, 4)
+        number = random.choice([1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5])
         for i in xrange(number):
             idx = random.randint(1, 241)
             rand_action = random.randint(0, 6)
             robby1 = robby1[:idx] + str(rand_action) + robby1[idx + 1:]
     vari = random.randint(1, 1000)
     if vari >= 1000 - variation * 10:
-        number = random.randint(1, 4)
+        number = random.choice([1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 5])
         for i in xrange(number):
             idx = random.randint(1, 241)
             rand_action = random.randint(0, 6)
             robby2 = robby2[:idx] + str(rand_action) + robby2[idx + 1:]
     return robby1, robby2
 
-def go_evolution(generations=1000):
+def go_evolution(generations=1000, variation=4):
     robbys = []
     for i in xrange(NUMBER_ROBBY):
         robby = {'name': get_random_robby(), 'score': 0 }
@@ -188,7 +188,7 @@ def go_evolution(generations=1000):
         logging.info("[%d, %.2f] AVG: %.2f" % (j, gene_best, AVG))
         new_robbys = []
         for i in xrange(100):
-            robby1, robby2 = get_new_robby(robbys)
+            robby1, robby2 = get_new_robby(robbys, variation)
             robby1 = {'name': robby1, 'score': 0}
             robby2 = {'name': robby2, 'score': 0}
             new_robbys.append(robby1)
@@ -203,7 +203,13 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-f", "--logfile", dest="logfile",
         help="Save output into a file")
+    parser.add_option("-v", "--variation", dest="variation",
+        help="Rate of variation, 0 - 100. means %0 - 100%")
     (options, args) = parser.parse_args()
+    if options.variation is None:
+        variation = 1
+    else:
+        variation = int(options.variation)
     logging.basicConfig(filename=options.logfile, level=logging.INFO,
         format="[%(asctime)s][%(levelname)s] %(message)s")
-    go_evolution()
+    go_evolution(1000, variation)
