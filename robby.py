@@ -14,13 +14,15 @@ SITUATIONS = get_situations()
 
 def get_index_random_base():
     IRB = []
-    for i in range(100):
-        IRB.extend([i] * (100 - i))
+    TOP_NUMBER = 20
+    total_number = 100
+    for i in range(TOP_NUMBER):
+        IRB.extend([i] * (TOP_NUMBER - i))
+    for i in range(TOP_NUMBER, total_number):
+        IRB.append(i)
     return IRB
 
 INDEXES_RANDOM_BASE = get_index_random_base()
-print INDEXES_RANDOM_BASE
-exit()
 
 def get_random_squares():
     squares = []
@@ -185,3 +187,4 @@ if __name__ == '__main__':
             new_robbys.append(robby1)
             new_robbys.append(robby2)
         robbys = new_robbys
+        break
